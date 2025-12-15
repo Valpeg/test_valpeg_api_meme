@@ -18,6 +18,14 @@ class Authorize(Endpoint):
             self.headers['Authorization'] = self.token
         return self.response
 
+    @allure.step("Проверка успешной авторизации")
+    def verify_authorization_successful(self):
+        """Проверка что авторизация прошла успешно"""
+        self.check_that_status_is_200()
+        response_json = self.response.json()
+        assert 'token' in response_json, "Token should be in response"
+        return True
+
     @allure.step("Проверка валидности токена")
     def check_token_validity(self, token):
         """Проверка жив ли токен"""
@@ -31,14 +39,13 @@ class Authorize(Endpoint):
     def verify_current_token_working(self):
         """Проверка что текущий токен в headers работает"""
         if 'Authorization' not in self.headers:
-            return False
+            raise AssertionError("Токен авторизации отсутствует в headers")
 
-        # Проверяем на существующем меме (ID 1)
-        test_response = requests.get(
-            f'{self.url}/meme/1',
-            headers=self.headers
-        )
+        # Проверяем валидность токена
+        token = self.headers['Authorization']
+        self.check_token_validity(token)
 
-        # Сохраняем тестовый ответ в отдельную переменную
-        self.test_response = test_response
-        return test_response.status_code == 200
+        # Проверяем что получили успешный ответ
+        self.check_that_status_is_200()
+
+        return True

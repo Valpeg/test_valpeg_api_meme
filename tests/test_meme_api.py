@@ -1,143 +1,16 @@
 import pytest
-
-
-# Данные для позитивных тестов (успешное создание мемов)
-TEST_DATA = [
-    # Первый набор данных для теста создания мема
-    {'body': {
-        "text": "Первый мем",
-        "url": "https://example.com/meme1.jpg",
-        "tags": ["tag1", "tag2"],
-        "info": {"colors": "colorful", "objects": ["image"]}
-    }},
-    # Второй набор данных для теста создания мема
-    {'body': {
-        "text": "Второй мем",
-        "url": "https://example.com/meme2.jpg",
-        "tags": ["funny", "cat"],
-        "info": {"colors": "black", "objects": ["cat", "text"]}
-    }},
-    # Третий набор данных для теста создания мема
-    {'body': {
-        "text": "Третий мем с длинным текстом",
-        "url": "https://example.com/meme3.jpg",
-        "tags": ["long", "text"],
-        "info": {"colors": "multicolor", "objects": ["picture", "text", "frame"]}
-    }}
-]
-
-# Данные для негативных тестов (ожидаемые ошибки 400)
-NEGATIVE_TEST_DATA = [
-    # Отсутствует обязательное поле text
-    {'body': {
-        "url": "https://example.com/meme.jpg",
-        "tags": ["tag"],
-        "info": {}
-    }},
-    # Отсутствует обязательное поле url
-    {'body': {
-        "text": "Test meme",
-        "tags": ["tag"],
-        "info": {}
-    }},
-    # Отсутствует обязательное поле tags
-    {'body': {
-        "text": "Test meme",
-        "url": "https://example.com/meme.jpg",
-        "info": {}
-    }},
-    # Отсутствует обязательное поле info
-    {'body': {
-        "text": "Test meme",
-        "url": "https://example.com/meme.jpg",
-        "tags": ["tag"]
-    }},
-    # Пустое тело запроса
-    {'body': {}},
-    # Неправильный тип данных для tags (строка вместо массива)
-    {'body': {
-        "text": "Test",
-        "url": "https://example.com",
-        "tags": "not an array",
-        "info": {}
-    }},
-    # Неправильный тип данных для info (строка вместо объекта)
-    {'body': {
-        "text": "Test",
-        "url": "https://example.com",
-        "tags": ["tag"],
-        "info": "not an object"
-    }},
-    # Null значения в обязательных полях
-    {'body': {
-        "text": None,
-        "url": "https://example.com",
-        "tags": ["tag"],
-        "info": {}
-    }}
-]
-
-# Данные для тестов с ошибкой "не найдено" (404)
-NOT_FOUND_TEST_DATA = [
-    # Неправильный URL endpoint
-    {'url': 'http://memesapi.course.qa-practice.com/wrong_endpoint',
-     'body': {
-         "text": "Test meme",
-         "url": "https://example.com/meme.jpg",
-         "tags": ["tag"],
-         "info": {}
-     }},
-    # URL с опечаткой
-    {'url': 'http://memesapi.course.qa-practice.com/mem',
-     'body': {
-         "text": "Test meme",
-         "url": "https://example.com/meme.jpg",
-         "tags": ["tag"],
-         "info": {}
-     }},
-    # Несуществующий endpoint
-    {'url': 'http://memesapi.course.qa-practice.com/nonexistent',
-     'body': {
-         "text": "Test meme",
-         "url": "https://example.com/meme.jpg",
-         "tags": ["tag"],
-         "info": {}
-     }}
-]
-
-# Данные для обновления мемов
-UPDATE_TEST_DATA = [
-    # Полное обновление мема
-    {'body': {
-        "id": None,  # Будет заполнено в тесте
-        "text": "Обновленный текст мема",
-        "url": "https://example.com/updated_meme.jpg",
-        "tags": ["обновленный", "тег"],
-        "info": {"colors": "updated", "objects": ["updated"]}
-    }},
-    # Обновление с минимальными изменениями
-    {'body': {
-        "id": None,
-        "text": "Только текст изменен",
-        "url": "https://example.com/meme.jpg",
-        "tags": ["tag1", "tag2"],
-        "info": {"colors": "colorful", "objects": ["image"]}
-    }},
-    # Обновление с новыми тегами
-    {'body': {
-        "id": None,
-        "text": "Мем с новыми тегами",
-        "url": "https://example.com/meme.jpg",
-        "tags": ["новый", "тег", "дополнительный"],
-        "info": {"colors": "colorful", "objects": ["image"]}
-    }}
-]
+from data import TEST_DATA, NEGATIVE_TEST_DATA, NOT_FOUND_TEST_DATA, UPDATE_TEST_DATA, default_meme
+from endpoints.get_all_meme import GetAllMemes
 
 
 def test_auth_token_working(authorize_endpoint):
-        """Проверка что токен работает"""
-        # Просто вызываем метод из эндпоинта
-        is_working = authorize_endpoint.verify_current_token_working()
+    """Проверка что токен работает"""
+    # Метод verify_current_token_working() сам содержит assert'ы
+    # и выбросит исключение если токен не работает
+    result = authorize_endpoint.verify_current_token_working()
+
+    # Можно дополнительно проверить что метод вернул True
+    assert result is True, "Метод должен возвращать True при успешной проверке"
 
 
 # Тест получения мема по ID
@@ -174,6 +47,36 @@ def test_create_meme_negative_cases(test_data, create_meme_endpoint):
     create_meme_endpoint.check_bad_request_error()
 
 
+# Тесты для негативных сценариев (401)
+def test_get_all_memes_unauthorized(get_all_memes_endpoint):
+    """Тест получения всех мемов без авторизации"""
+    get_all_memes_endpoint.verify_unauthorized_get_all()
+
+def test_get_meme_by_id_unauthorized(get_one_meme_endpoint, new_meme_id):
+    """Тест получения мема по ID без авторизации"""
+    get_one_meme_endpoint.verify_unauthorized_get_by_id(new_meme_id)
+
+def test_create_meme_unauthorized(create_meme_endpoint):
+    """Тест создания мема без авторизации"""
+    body = default_meme.copy()
+    create_meme_endpoint.verify_unauthorized_create(body)
+
+def test_update_meme_unauthorized(update_meme_endpoint, new_meme_id):
+    """Тест обновления мема без авторизации"""
+    body = {
+        "id": new_meme_id,
+        "text": "Обновленный без авторизации",
+        "url": "https://example.com/update.jpg",
+        "tags": ["update"],
+        "info": {}
+    }
+    update_meme_endpoint.verify_unauthorized_update(new_meme_id, body)
+
+def test_delete_meme_unauthorized(delete_meme_endpoint, new_meme_id):
+    """Тест удаления мема без авторизации"""
+    delete_meme_endpoint.verify_unauthorized_delete(new_meme_id)
+
+
 # Тест для проверки ошибок "не найдено" (404)
 @pytest.mark.parametrize("test_data", NOT_FOUND_TEST_DATA)
 def test_create_meme_not_found(test_data, create_meme_endpoint):
@@ -196,26 +99,6 @@ def test_get_all_memes(get_all_memes_endpoint):
     get_all_memes_endpoint.get_all_memes()
     # Проверяем, что список мемов получен успешно
     get_all_memes_endpoint.verify_memes_list_received()
-
-
-# Тест полного обновления мема (PUT запрос)
-def test_put_meme(update_meme_endpoint, new_meme_id):
-    # Тело запроса для полного обновления мема
-    body = {
-        "id": new_meme_id,
-        "text": "Полностью обновленный мем",
-        "url": "https://example.com/fully_updated_meme.jpg",
-        "tags": ["обновленный", "полностью"],
-        "info": {"colors": "new colors", "objects": ["new object"]}
-    }
-    # Выполняем полное обновление мема
-    update_meme_endpoint.update_meme(new_meme_id, body)
-    # Проверяем, что мем успешно обновлен
-    update_meme_endpoint.verify_meme_updated_successfully(
-        body['text'],  # Ожидаемый текст мема
-        body['url'],  # Ожидаемый URL
-        body['tags']  # Ожидаемые теги
-    )
 
 
 # Тест обновления мемов с разными данными
@@ -248,13 +131,11 @@ def test_delete_meme(delete_meme_endpoint, new_meme_id):
 
 # Тест авторизации пользователя
 def test_authorize_user(authorize_endpoint):
+    """Тест авторизации пользователя"""
     # Авторизуем пользователя
     authorize_endpoint.authorize_user()
-    # Проверяем, что авторизация прошла успешно
-    authorize_endpoint.check_that_status_is_200()
-    # Проверяем, что в ответе есть токен
-    response_json = authorize_endpoint.response.json()
-    assert 'token' in response_json, "Token should be in response"
+    # Проверяем, что авторизация прошла успешно (все ассерты внутри метода)
+    authorize_endpoint.verify_authorization_successful()
 
 
 # Тест проверки валидности токена
@@ -267,15 +148,13 @@ def test_check_token_validity(authorize_endpoint, auth_token):
 
 @pytest.mark.skip
 # Тест доступа без авторизации
-def test_unauthorized_access():
-    # Импортируем класс напрямую, чтобы не использовать фикстуру с токеном
-    from endpoints.get_all_meme import GetAllMemes
-    # Создаем endpoint без авторизации
-    endpoint = GetAllMemes()
+def test_unauthorized_access(get_all_memes_endpoint):
+    # Убираем токен из заголовков эндпоинта
+    get_all_memes_endpoint.headers.pop('Authorization', None)
     # Пытаемся получить мемы без авторизации
-    endpoint.get_all_memes()
+    get_all_memes_endpoint.get_all_memes()
     # Проверяем, что получили ошибку авторизации
-    endpoint.check_unauthorized_error()
+    get_all_memes_endpoint.check_unauthorized_error()
 
 
 # Тест получения несуществующего мема

@@ -28,3 +28,25 @@ class DeleteMeme(Endpoint):
         )
         self.response = check_response
         self.check_not_found_error()
+
+    @allure.step("Проверка удаления мема без авторизации")
+    def verify_unauthorized_delete(self, meme_id):
+        """Проверка что удаление мема без авторизации возвращает 401"""
+        original_token = self.headers.get('Authorization')
+
+        try:
+            # Удаляем токен авторизации
+            if 'Authorization' in self.headers:
+                del self.headers['Authorization']
+
+            # Пытаемся удалить мем
+            self.delete_meme_by_id(meme_id)
+
+            # Используем существующий метод check_unauthorized_error
+            self.check_unauthorized_error()
+
+            return self.response
+        finally:
+            # Восстанавливаем заголовки
+            if original_token:
+                self.headers['Authorization'] = original_token

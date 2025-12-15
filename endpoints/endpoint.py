@@ -26,6 +26,24 @@ class Endpoint:
     def check_not_found_error(self):
         assert self.response.status_code == 404, f"Expected 404, got {self.response.status_code}"
 
+    @allure.step('Проверка содержимого мема')
+    def verify_meme_content(self, expected_text, expected_url, expected_tags):
+        """Общая проверка содержимого мема для создания и обновления"""
+        self.check_that_status_is_200()
+
+        # Проверяем что json есть перед доступом
+        if not hasattr(self, 'json') or not self.json:
+            raise AssertionError("JSON ответ отсутствует")
+
+        assert self.json['text'] == expected_text, \
+            f"Expected text '{expected_text}', got '{self.json['text']}'"
+        assert self.json['url'] == expected_url, \
+            f"Expected URL '{expected_url}', got '{self.json['url']}'"
+        assert self.json['tags'] == expected_tags, \
+            f"Expected tags {expected_tags}, got {self.json['tags']}"
+        assert 'id' in self.json, "ID должен присутствовать в ответе"
+
+
     def set_token(self, token):
         """Установить токен авторизации"""
         self.headers['Authorization'] = token

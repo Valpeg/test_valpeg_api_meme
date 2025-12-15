@@ -54,12 +54,6 @@ def authorize_endpoint():
     return Authorize()
 
 
-@pytest.fixture()
-def default_meme_data():
-    """Фикстура для получения данных мема по умолчанию"""
-    return default_meme
-
-
 # Простая фикстура для токена
 @pytest.fixture()
 def auth_token():
@@ -71,10 +65,3 @@ def auth_token():
     # Получаем токен из ответа
     token = auth_endpoint.response.json()['token']
     return token
-
-
-@pytest.fixture(autouse=True)
-def auto_set_auth():
-    """Автоматически настраивает авторизацию"""
-    # Не нужно ничего делать, так как токен уже в headers в endpoint.py
-    pass
