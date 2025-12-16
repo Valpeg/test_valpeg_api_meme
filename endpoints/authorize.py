@@ -38,8 +38,8 @@ class Authorize(Endpoint):
     @allure.step("Проверка что текущий токен работает")
     def verify_current_token_working(self):
         """Проверка что текущий токен в headers работает"""
-        if 'Authorization' not in self.headers:
-            raise AssertionError("Токен авторизации отсутствует в headers")
+        assert 'Authorization' in self.headers, "Токен авторизации отсутствует в headers"
+
 
         # Проверяем валидность токена
         token = self.headers['Authorization']

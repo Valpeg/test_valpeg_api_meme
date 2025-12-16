@@ -17,14 +17,6 @@ class UpdateMeme(Endpoint):
             self.json = self.response.json()
         return self.response
 
-    @allure.step("Проверка успешного обновления мема")
-    def verify_meme_updated_successfully(self, expected_text, expected_url, expected_tags):
-        """Проверка обновленного мема"""
-        self.check_that_status_is_200()
-        assert self.json['text'] == expected_text
-        assert self.json['url'] == expected_url
-        assert self.json['tags'] == expected_tags
-
     @allure.step("Проверка обновления мема без авторизации")
     def verify_unauthorized_update(self, meme_id, body):
         """Проверка что обновление мема без авторизации возвращает 401"""

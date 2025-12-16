@@ -27,7 +27,7 @@ class Endpoint:
         assert self.response.status_code == 404, f"Expected 404, got {self.response.status_code}"
 
     @allure.step('Проверка содержимого мема')
-    def verify_meme_content(self, expected_text, expected_url, expected_tags):
+    def verify_meme_content(self, expected_text, expected_url, expected_tags, expected_info):
         """Общая проверка содержимого мема для создания и обновления"""
         self.check_that_status_is_200()
 
@@ -35,12 +35,19 @@ class Endpoint:
         if not hasattr(self, 'json') or not self.json:
             raise AssertionError("JSON ответ отсутствует")
 
+            # Проверяем ВСЕ 5 полей мема
         assert self.json['text'] == expected_text, \
             f"Expected text '{expected_text}', got '{self.json['text']}'"
         assert self.json['url'] == expected_url, \
             f"Expected URL '{expected_url}', got '{self.json['url']}'"
         assert self.json['tags'] == expected_tags, \
             f"Expected tags {expected_tags}, got {self.json['tags']}"
+        assert self.json['info'] == expected_info, \
+            f"Expected info {expected_info}, got {self.json['info']}"
+
+        # Просто убеждаемся что updated_by есть (но не проверяем значение)
+        assert 'updated_by' in self.json, "Поле 'updated_by' должно быть в ответе"
+
         assert 'id' in self.json, "ID должен присутствовать в ответе"
 
 

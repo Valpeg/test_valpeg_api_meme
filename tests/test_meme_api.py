@@ -1,16 +1,12 @@
 import pytest
-from data import TEST_DATA, NEGATIVE_TEST_DATA, NOT_FOUND_TEST_DATA, UPDATE_TEST_DATA, default_meme
+from data import TEST_DATA, NEGATIVE_TEST_DATA, NOT_FOUND_TEST_DATA, UPDATE_TEST_DATA, UPDATE_NEGATIVE_TEST_DATA, default_meme
 from endpoints.get_all_meme import GetAllMemes
 
 
 def test_auth_token_working(authorize_endpoint):
-    """Проверка что токен работает"""
-    # Метод verify_current_token_working() сам содержит assert'ы
-    # и выбросит исключение если токен не работает
-    result = authorize_endpoint.verify_current_token_working()
-
-    # Можно дополнительно проверить что метод вернул True
-    assert result is True, "Метод должен возвращать True при успешной проверке"
+    # Просто вызываем метод - если он не упадет с AssertionError,
+    # значит токен рабочий и проверка прошла успешно
+    authorize_endpoint.verify_current_token_working()
 
 
 # Тест получения мема по ID
@@ -28,11 +24,14 @@ def test_create_meme(test_data, create_meme_endpoint):
     body = test_data['body']
     # Отправляем POST запрос для создания мема
     create_meme_endpoint.create_meme(body=body)
-    # Проверяем, что мем успешно создан с правильными данными
-    create_meme_endpoint.verify_meme_created_successfully(
-        body['text'],  # Ожидаемый текст мема
+    # Используем общий метод из родительского класса
+    # Не передаем updated_by, так как его устанавливает сервер
+    create_meme_endpoint.verify_meme_content(
+        body['text'],  # Ожидаемый текст
         body['url'],  # Ожидаемый URL
-        body['tags']  # Ожидаемые теги
+        body['tags'],  # Ожидаемые теги
+        body['info']  # Ожидаемая информация
+        # updated_by не проверяем по значению!
     )
 
 
@@ -111,12 +110,30 @@ def test_update_meme_with_different_data(test_data, update_meme_endpoint, new_me
 
     # Выполняем обновление мема
     update_meme_endpoint.update_meme(new_meme_id, body)
-    # Проверяем, что мем успешно обновлен
-    update_meme_endpoint.verify_meme_updated_successfully(
+    # Используем общий метод из родительского класса
+    update_meme_endpoint.verify_meme_content(
         body['text'],  # Ожидаемый текст мема
         body['url'],  # Ожидаемый URL
-        body['tags']  # Ожидаемые теги
+        body['tags'],  # Ожидаемые теги
+        body['info']  # Ожидаемая дополнительная информация
     )
+
+
+# Негативные сценарии обновления мема (400 ошибки)
+@pytest.mark.parametrize("test_data", UPDATE_NEGATIVE_TEST_DATA)
+def test_update_meme_negative_cases(test_data, update_meme_endpoint, new_meme_id):
+    """
+    Тест проверяет, что эндпоинт обновления мема возвращает 400
+    при попытке отправить невалидные данные
+    """
+    # Извлекаем тело запроса из тестовых данных
+    body = test_data['body']
+
+    # Выполняем обновление мема с невалидными данными
+    update_meme_endpoint.update_meme(new_meme_id, body)
+
+    # Проверяем, что получили ошибку 400 (Bad Request)
+    update_meme_endpoint.check_bad_request_error()
 
 
 # Тест удаления мема

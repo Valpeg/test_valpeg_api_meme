@@ -13,21 +13,24 @@ TEST_DATA = [
         "text": "Первый мем",
         "url": "https://example.com/meme1.jpg",
         "tags": ["tag1", "tag2"],
-        "info": {"colors": "colorful", "objects": ["image"]}
+        "info": {"colors": "colorful", "objects": ["image"]},
+        "updated_by": "Test User"
     }},
     # Второй набор данных для теста создания мема
     {'body': {
         "text": "Второй мем",
         "url": "https://example.com/meme2.jpg",
         "tags": ["funny", "cat"],
-        "info": {"colors": "black", "objects": ["cat", "text"]}
+        "info": {"colors": "black", "objects": ["cat", "text"]},
+        "updated_by": "Test User"
     }},
     # Третий набор данных для теста создания мема
     {'body': {
         "text": "Третий мем с длинным текстом",
         "url": "https://example.com/meme3.jpg",
         "tags": ["long", "text"],
-        "info": {"colors": "multicolor", "objects": ["picture", "text", "frame"]}
+        "info": {"colors": "multicolor", "objects": ["picture", "text", "frame"]},
+        "updated_by": "Test User"
     }}
 ]
 
@@ -118,7 +121,7 @@ UPDATE_TEST_DATA = [
         "text": "Обновленный текст мема",
         "url": "https://example.com/updated_meme.jpg",
         "tags": ["обновленный", "тег"],
-        "info": {"colors": "updated", "objects": ["updated"]}
+        "info": {"colors": "updated", "objects": ["updated"]},
     }},
     # Обновление с минимальными изменениями
     {'body': {
@@ -126,7 +129,7 @@ UPDATE_TEST_DATA = [
         "text": "Только текст изменен",
         "url": "https://example.com/meme.jpg",
         "tags": ["tag1", "tag2"],
-        "info": {"colors": "colorful", "objects": ["image"]}
+        "info": {"colors": "colorful", "objects": ["image"]},
     }},
     # Обновление с новыми тегами
     {'body': {
@@ -134,6 +137,54 @@ UPDATE_TEST_DATA = [
         "text": "Мем с новыми тегами",
         "url": "https://example.com/meme.jpg",
         "tags": ["новый", "тег", "дополнительный"],
-        "info": {"colors": "colorful", "objects": ["image"]}
+        "info": {"colors": "colorful", "objects": ["image"]},
     }}
+]
+
+UPDATE_NEGATIVE_TEST_DATA = [
+    {
+        'description': 'Обновление мема с пустым текстом',
+        'body': {
+            'text': '',  # Пустой текст - невалидно
+            'url': 'https://example.com/meme.jpg',
+            'tags': ['tag1'],
+            'info': {'colors': 'colorful'}
+        }
+    },
+    {
+        'description': 'Обновление мема без поля text',
+        'body': {
+            # Нет поля text - невалидно
+            'url': 'https://example.com/meme.jpg',
+            'tags': ['tag1'],
+            'info': {'colors': 'colorful'}
+        }
+    },
+    {
+        'description': 'Обновление мема с невалидным URL',
+        'body': {
+            'text': 'Test meme',
+            'url': 'invalid-url',  # Невалидный URL
+            'tags': ['tag1'],
+            'info': {'colors': 'colorful'}
+        }
+    },
+    {
+        'description': 'Обновление мема с пустыми тегами',
+        'body': {
+            'text': 'Test meme',
+            'url': 'https://example.com/meme.jpg',
+            'tags': [],  # Пустой массив тегов
+            'info': {'colors': 'colorful'}
+        }
+    },
+    {
+        'description': 'Обновление мема без поля info',
+        'body': {
+            'text': 'Test meme',
+            'url': 'https://example.com/meme.jpg',
+            'tags': ['tag1']
+            # Нет поля info - возможно невалидно
+        }
+    }
 ]
